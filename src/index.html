@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+        <title></title>
+        <style>
+            h1{
+                text-align: center;
+                font-size: 30px;
+                font-weight: 100;
+                font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            }
+            body{
+                text-align: center;
+            }
+            input{
+                width: 300px;
+                height: 40px;
+            }
+            button{
+                height: 45px;
+                width: 6rem;
+                background-color: black;
+                color: white;
+            }
+            th{
+              font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+              font-weight: 100;
+              font-size: 20px;
+              padding: 70px;
+              padding-bottom: 20px;
+              position: relative;
+              left: 30rem;
+            }
+            td{
+              padding-left: 70px;
+              position: relative;
+              left: 28rem;
+              font-family: 'Times New Roman', Times, serif;
+              font-size: 18px;
+              font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Add New Task!!</h1>
+        <input id="task" type="text" placeholder="Add task here!">
+        <button onclick="addTask()">Add</button>
+        <br>
+        <br>
+        <button onclick="viewTask()">View All Task</button>
+        <table id="addtable">
+          <tr>
+          <th>Task No</th>
+          <th>Task</th>
+          <th>Status</th>
+          </tr>
+          <tr>
+            <td id="id"></td>
+            <td id="content"></td>
+            <td id="status"></td>
+          </tr>
+        </table>
+        <script>
+            if(typeof web3!=="undefined"){
+                web3=new Web3(ethereum);
+            } 
+            else{
+                web3=new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+            } 
+            var address="0xC121B28b576690D3923db20D48cE25B330A980Ab";
+            contract=new web3.eth.Contract([
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "tasks",
+      "outputs": [
+        {
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "name": "task",
+          "type": "string"
+        },
+        {
+          "name": "completed",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "signature": "0x8d977672"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "taskCount",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "signature": "0xb6cb58a5"
+    },
+    {
+      "inputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "constructor",
+      "signature": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "name": "task",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "name": "completed",
+          "type": "bool"
+        }
+      ],
+      "name": "TaskCreated",
+      "type": "event",
+      "signature": "0x05d0fb833127fc08168556d0e7ca9554fc3f6bc843b3b7d2bf1c35aea6bab660"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_task",
+          "type": "string"
+        }
+      ],
+      "name": "addTask",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function",
+      "signature": "0x67238562"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getTaskCount",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "signature": "0xc17a340e"
+    },
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "id",
+          "type": "uint256"
+        }
+      ],
+      "name": "taskList",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "name": "",
+          "type": "string"
+        },
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function",
+      "signature": "0x2a1c52a5"
+    }
+  ],address);
+            async function taskAdd(_task){
+            const accounts=await window.ethereum.request({method:'eth_requestAccounts'}); 
+            const account=accounts[0];
+            const tx=await contract.methods.addTask(_task).send({from:account});
+        } 
+        function addTask(){
+            var task=document.getElementById("task").value; 
+            taskAdd(task);
+        } 
+        function viewTask(){
+          contract.methods.getTaskCount().call().then( function(taskCount) { 
+            _cnt=taskCount;
+            console.log(_cnt);
+            TaskList(_cnt);
+          });  
+        }  
+        async function TaskList(_cnt){
+          for(i=1;i<=_cnt;i++){
+            contract.methods.taskList(i).call().then( function(taskCount) { 
+            console.log(taskCount); 
+            $("#addtable").append("<tr>" + 
+              "<td>"+taskCount[0]+"</td>" +
+              "<td>"+taskCount[1]+"</td>" +
+              "<td>"+taskCount[2]+"</td>" +
+            "</tr>");
+          }); 
+          }
+        }  
+        </script>
+    </body>
+</html>
